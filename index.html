@@ -226,6 +226,11 @@
       const ageElement = document.querySelector('.js-age');
       let age = Number(ageElement.value);
 
+      if (age < 1) {
+        showPopup('Please enter a valid age (1 or older).');
+        return;
+      }
+
       document.querySelector('.js-questions').innerHTML = '';
       document.querySelector('.operation-selection').style.display = 'none';
       document.querySelector('.advanced-operation-selection').style.display = 'none';
@@ -261,82 +266,71 @@
     }
 
     function generateQuestion() {
-  let randomNumber1, randomNumber2;
+      let randomNumber1, randomNumber2;
 
-  const ageElement = document.querySelector('.js-age');
-  const age = Number(ageElement.value);
+      const ageElement = document.querySelector('.js-age');
+      const age = Number(ageElement.value);
 
-  let maxNumber1, maxNumber2;
+      let maxNumber1, maxNumber2;
 
-  if (age <= 8) {
-    maxNumber1 = 10;
-    maxNumber2 = 10;
-  } else if (age <= 14) {
-    maxNumber1 = 100;
-    maxNumber2 = 100;
-  } else if (age > 14) {
-    maxNumber1 = 1000;
-    maxNumber2 = 1000;
-  }
-
-  if (currentOperation === 'addition') {
-    randomNumber1 = Math.floor(Math.random() * maxNumber1) + 1;
-    randomNumber2 = Math.floor(Math.random() * maxNumber2) + 1;
-    correctAnswer = randomNumber1 + randomNumber2;
-    document.querySelector('.js-questions').innerHTML = `What is ${randomNumber1} + ${randomNumber2}?`;
-  } else if (currentOperation === 'subtraction') {
-    randomNumber1 = Math.floor(Math.random() * maxNumber1) + 1;
-    randomNumber2 = Math.floor(Math.random() * maxNumber2) + 1;
-    if (randomNumber1 < randomNumber2) [randomNumber1, randomNumber2] = [randomNumber2, randomNumber1];
-    correctAnswer = randomNumber1 - randomNumber2;
-    document.querySelector('.js-questions').innerHTML = `What is ${randomNumber1} - ${randomNumber2}?`;
-  } else if (currentOperation === 'multiplication') {
-    randomNumber1 = Math.floor(Math.random() * maxNumber1) + 1;
-    randomNumber2 = Math.floor(Math.random() * maxNumber2) + 1;
-    correctAnswer = randomNumber1 * randomNumber2;
-    document.querySelector('.js-questions').innerHTML = `What is ${randomNumber1} * ${randomNumber2}?`;
-  } else if (currentOperation === 'division') {
-    randomNumber1 = Math.floor(Math.random() * maxNumber1) + 1;
-    randomNumber2 = Math.floor(Math.random() * maxNumber2) + 1;
-    correctAnswer = Math.floor(randomNumber1 / randomNumber2);
-    document.querySelector('.js-questions').innerHTML = `What is ${randomNumber1} / ${randomNumber2}?`;
-  }
-
-  document.querySelector('.action-buttons').style.display = 'block';
-}
-
-
-
-
-    function checkAnswer() {
-      const userAnswer = Number(document.querySelector('.js-answer').value);
-      if (userAnswer === correctAnswer) {
-        score++;
-        showPopup('Correct! Well done.');
-      } else {
-        showPopup('Incorrect. Try the next question.');
+      if (age <= 8) {
+        maxNumber1 = 10;
+        maxNumber2 = 10;
+      } else if (age <= 14) {
+        maxNumber1 = 100;
+        maxNumber2 = 100;
+      } else if (age > 14) {
+        maxNumber1 = 1000;
+        maxNumber2 = 1000;
       }
-      updateScore();
-      generateNextQuestion(); 
+
+      if (currentOperation === 'addition') {
+        randomNumber1 = Math.floor(Math.random() * maxNumber1) + 1;
+        randomNumber2 = Math.floor(Math.random() * maxNumber2) + 1;
+        correctAnswer = randomNumber1 + randomNumber2;
+        document.querySelector('.js-questions').innerHTML = `What is ${randomNumber1} + ${randomNumber2}?`;
+      } else if (currentOperation === 'subtraction') {
+        randomNumber1 = Math.floor(Math.random() * maxNumber1) + 1;
+        randomNumber2 = Math.floor(Math.random() * maxNumber2) + 1;
+        correctAnswer = randomNumber1 - randomNumber2;
+        document.querySelector('.js-questions').innerHTML = `What is ${randomNumber1} - ${randomNumber2}?`;
+      } else if (currentOperation === 'multiplication') {
+        randomNumber1 = Math.floor(Math.random() * maxNumber1) + 1;
+        randomNumber2 = Math.floor(Math.random() * maxNumber2) + 1;
+        correctAnswer = randomNumber1 * randomNumber2;
+        document.querySelector('.js-questions').innerHTML = `What is ${randomNumber1} × ${randomNumber2}?`;
+      } else if (currentOperation === 'division') {
+        randomNumber2 = Math.floor(Math.random() * maxNumber2) + 1;
+        correctAnswer = Math.floor(Math.random() * maxNumber2) + 1;
+        randomNumber1 = correctAnswer * randomNumber2;
+        document.querySelector('.js-questions').innerHTML = `What is ${randomNumber1} ÷ ${randomNumber2}?`;
+      }
+
+      document.querySelector('.action-buttons').style.display = 'block';
     }
 
-    function generateNextQuestion() {
-      generateQuestion(); 
-      document.querySelector('.js-answer').value = ''; 
+    function checkAnswer() {
+      const answerElement = document.querySelector('.js-answer');
+      const userAnswer = Number(answerElement.value);
+
+      if (userAnswer === correctAnswer) {
+        score++;
+        showPopup('Correct! Good job.');
+      } else {
+        showPopup('Incorrect. Try again.');
+      }
+
+      updateScore();
+      answerElement.value = '';
     }
 
     function updateScore() {
-      document.querySelector('.js-score').textContent = `Score: ${score}`;
+      document.querySelector('.js-score').innerText = `Score: ${score}`;
       saveScore();
     }
 
-    function showPopup(message) {
-      document.getElementById('popup-message').textContent = message;
-      document.getElementById('popup').style.display = 'flex';
-    }
-
-    function closePopup() {
-      document.getElementById('popup').style.display = 'none';
+    function generateNextQuestion() {
+      generateQuestion();
     }
 
     function resetScore() {
@@ -344,7 +338,20 @@
       updateScore();
     }
 
-    window.onload = loadScore;
+    function showPopup(message) {
+      const popup = document.getElementById('popup');
+      document.getElementById('popup-message').innerText = message;
+      popup.style.display = 'flex';
+    }
+
+    function closePopup() {
+      const popup = document.getElementById('popup');
+      popup.style.display = 'none';
+    }
+
+    window.onload = function() {
+      loadScore();
+    }
   </script>
 </body>
 </html>
