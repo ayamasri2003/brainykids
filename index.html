@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Brainy Kids</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f8ff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .header {
+      background-color: #ffcc00;
+      color: #000;
+      padding: 20px;
+      border-bottom: 5px solid #ff9900;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+
+    .header p.title {
+      margin: 0;
+      font-size: 2em;
+      font-weight: bold;
+    }
+
+    .header .score {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+
+    .start-button,
+    .add-button,
+    .subtract-button,
+    .multiply-button,
+    .divide-button,
+    .submit-button,
+    .next-button,
+    .reset-button {
+      background-color: #ffcc00;
+      border: none;
+      border-radius: 12px;
+      color: #000;
+      font-size: 1.2em;
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .start-button:hover,
+    .add-button:hover,
+    .subtract-button:hover,
+    .multiply-button:hover,
+    .divide-button:hover,
+    .submit-button:hover,
+    .next-button:hover,
+    .reset-button:hover {
+      background-color: #ff9900;
+    }
+
+    .start-button:active,
+    .add-button:active,
+    .subtract-button:active,
+    .multiply-button:active,
+    .divide-button:active,
+    .submit-button:active,
+    .next-button:active,
+    .reset-button:active {
+      transform: scale(0.98);
+    }
+
+    .operation-selection,
+    .advanced-operation-selection {
+      margin-top: 20px;
+    }
+
+    .js-questions {
+      margin-top: 20px;
+      font-size: 1.5em;
+    }
+
+    input.js-age,
+    input.js-answer {
+      font-size: 1.2em;
+      padding: 10px;
+      margin: 5px;
+      border-radius: 8px;
+      border: 2px solid #ccc;
+      width: 80%;
+      max-width: 300px;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .submit-button {
+      margin: 10px auto; 
+    }
+
+    .next-reset-container {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 300px;
+      margin-top: 10px;
+    }
+
+    .reset-button {
+      margin-left: 20px;
+    }
+
+    .popup {
+      display: none; 
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .popup-content {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      position: relative;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <p class="title">Brainy Kids</p>
+    <p class="score js-score">Score: 0</p>
+  </div>
+
+  <input placeholder="Enter your age" class="js-age" onkeydown="handleAgeKeydown(event)">
+  <button class="start-button" onclick="playGame()">Start Now</button>
+
+  <div class="operation-selection" style="display: none;">
+    <button class="add-button" onclick="startAddition()">Addition</button>
+    <button class="subtract-button" onclick="startSubtraction()">Subtraction</button>
+  </div>
+
+  <div class="advanced-operation-selection" style="display: none;">
+    <button class="add-button" onclick="startAddition()">Addition</button>
+    <button class="subtract-button" onclick="startSubtraction()">Subtraction</button>
+    <button class="multiply-button" onclick="startMultiplication()">Multiplication</button>
+    <button class="divide-button" onclick="startDivision()">Division</button>
+  </div>
+
+  <p class="js-questions"></p>
+
+  <div class="action-buttons" style="display: none;">
+    <input placeholder="Enter your answer" class="js-answer" onkeydown="handleAnswerKeydown(event)">
+    <button class="submit-button" onclick="checkAnswer()">Submit</button>
+
+    <div class="next-reset-container">
+      <button class="next-button" onclick="generateNextQuestion()">Next</button>
+      <button class="reset-button" onclick="resetScore()">Reset Score</button>
+    </div>
+  </div>
+
+  <div id="popup" class="popup">
+    <div class="popup-content">
+      <span class="close-btn" onclick="closePopup()">&times;</span>
+      <p id="popup-message"></p>
+    </div>
+  </div>
+
+  <script>
+    let correctAnswer = null;
+    let currentOperation = null;
+    let score = 0;
+
+    function loadScore() {
+      const savedScore = localStorage.getItem('score');
+      if (savedScore !== null) {
+        score = Number(savedScore);
+      }
+      updateScore();
+    }
+
+    function saveScore() {
+      localStorage.setItem('score', score);
+    }
+
+    function handleAgeKeydown(event) {
+      if (event.key === 'Enter') {
+        playGame();
+      }
+    }
+
+    function handleAnswerKeydown(event) {
+      if (event.key === 'Enter') {
+        checkAnswer();
+      }
+    }
+
+    function playGame() {
+      const ageElement = document.querySelector('.js-age');
+      let age = Number(ageElement.value);
+
+      document.querySelector('.js-questions').innerHTML = '';
+      document.querySelector('.operation-selection').style.display = 'none';
+      document.querySelector('.advanced-operation-selection').style.display = 'none';
+      document.querySelector('.action-buttons').style.display = 'none';
+
+      if (age <= 8) {
+        document.querySelector('.operation-selection').style.display = 'block';
+      } else if (age <= 17) {
+        document.querySelector('.advanced-operation-selection').style.display = 'block';
+      } else {
+        alert('Age out of range. Please enter an age between 1 and 17.');
+      }
+    }
+
+    function startAddition() {
+      currentOperation = 'addition';
+      generateQuestion();
+    }
+
+    function startSubtraction() {
+      currentOperation = 'subtraction';
+      generateQuestion();
+    }
+
+    function startMultiplication() {
+      currentOperation = 'multiplication';
+      generateQuestion();
+    }
+
+    function startDivision() {
+      currentOperation = 'division';
+      generateQuestion();
+    }
+
+    function generateQuestion() {
+  let randomNumber1, randomNumber2;
+
+  const ageElement = document.querySelector('.js-age');
+  const age = Number(ageElement.value);
+
+  let maxNumber1, maxNumber2;
+
+  if (age <= 8) {
+    maxNumber1 = 10;
+    maxNumber2 = 10;
+  } else if (age <= 14) {
+    maxNumber1 = 100;
+    maxNumber2 = 100;
+  } else if (age > 14) {
+    maxNumber1 = 1000;
+    maxNumber2 = 1000;
+  }
+
+  if (currentOperation === 'addition') {
+    randomNumber1 = Math.floor(Math.random() * maxNumber1) + 1;
+    randomNumber2 = Math.floor(Math.random() * maxNumber2) + 1;
+    correctAnswer = randomNumber1 + randomNumber2;
+    document.querySelector('.js-questions').innerHTML = `What is ${randomNumber1} + ${randomNumber2}?`;
+  } else if (currentOperation === 'subtraction') {
+    randomNumber1 = Math.floor(Math.random() * maxNumber1) + 1;
+    randomNumber2 = Math.floor(Math.random() * maxNumber2) + 1;
+    if (randomNumber1 < randomNumber2) [randomNumber1, randomNumber2] = [randomNumber2, randomNumber1];
+    correctAnswer = randomNumber1 - randomNumber2;
+    document.querySelector('.js-questions').innerHTML = `What is ${randomNumber1} - ${randomNumber2}?`;
+  } else if (currentOperation === 'multiplication') {
+    randomNumber1 = Math.floor(Math.random() * maxNumber1) + 1;
+    randomNumber2 = Math.floor(Math.random() * maxNumber2) + 1;
+    correctAnswer = randomNumber1 * randomNumber2;
+    document.querySelector('.js-questions').innerHTML = `What is ${randomNumber1} * ${randomNumber2}?`;
+  } else if (currentOperation === 'division') {
+    randomNumber1 = Math.floor(Math.random() * maxNumber1) + 1;
+    randomNumber2 = Math.floor(Math.random() * maxNumber2) + 1;
+    correctAnswer = Math.floor(randomNumber1 / randomNumber2);
+    document.querySelector('.js-questions').innerHTML = `What is ${randomNumber1} / ${randomNumber2}?`;
+  }
+
+  document.querySelector('.action-buttons').style.display = 'block';
+}
+
+
+
+
+    function checkAnswer() {
+      const userAnswer = Number(document.querySelector('.js-answer').value);
+      if (userAnswer === correctAnswer) {
+        score++;
+        showPopup('Correct! Well done.');
+      } else {
+        showPopup('Incorrect. Try the next question.');
+      }
+      updateScore();
+      generateNextQuestion(); 
+    }
+
+    function generateNextQuestion() {
+      generateQuestion(); 
+      document.querySelector('.js-answer').value = ''; 
+    }
+
+    function updateScore() {
+      document.querySelector('.js-score').textContent = `Score: ${score}`;
+      saveScore();
+    }
+
+    function showPopup(message) {
+      document.getElementById('popup-message').textContent = message;
+      document.getElementById('popup').style.display = 'flex';
+    }
+
+    function closePopup() {
+      document.getElementById('popup').style.display = 'none';
+    }
+
+    function resetScore() {
+      score = 0;
+      updateScore();
+    }
+
+    window.onload = loadScore;
+  </script>
+</body>
+</html>
